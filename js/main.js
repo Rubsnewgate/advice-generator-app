@@ -1,23 +1,33 @@
-const QUOTE_CONTENT = document.querySelector('.quote')
-const QUOTE_ID = document.querySelector('.quote--id')
-const QUOTE_GENERATOR = document.querySelector('#get-data')
-
-function getQuote() {
-	const results = fetch("	https://api.adviceslip.com/advice")
-
-	results.then(response => response.json())
-	.then(data => {
-		const adviceObj = data.slip
-		QUOTE_CONTENT.textContent = `${adviceObj.advice}`
-		QUOTE_ID.textContent = `${adviceObj.id}`
-	})
-	.catch(error => {
-		console.log(error)
-		QUOTE_CONTENT.textContent = "Sorry, there was a failure communicating with the server. 😥"
-		QUOTE_ID.textContent = "null"
-	})
+const domElements = {
+	quoteContent: document.querySelector('.quote'),
+	quoteId: document.querySelector('.quote--id'),
+    quoteGenerator: document.querySelector('#get-data')
 }
 
-QUOTE_GENERATOR.addEventListener('click', () => getQuote())
+async function getQuote () {
+	try {
+		const response = await fetch('https://api.adviceslip.com/advice')
+		if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
 
-window.onload = () => getQuote()
+		const data = await response.json()
+		const adviceObj = data.slip
+
+		updateDOM(adviceObj.advice, adviceObj.id)
+	}
+	catch (error) {
+		console.error('Error fetching quote:', error)
+        updateDOM('Sorry, there was a failure communicating with the server.', 'null')
+	}
+}
+
+const updateDOM = (quote, id) => {
+	domElements.quoteContent.textContent = quote
+	domElements.quoteId.textContent = id
+}
+
+const init = () => {
+	domElements.quoteGenerator.addEventListener('click', getQuote)
+	getQuote() // Initial fetch when the page loads.
+}
+
+window.onload = init
